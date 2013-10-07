@@ -2,7 +2,7 @@
 $pageTitle = 'Форма за регистрация';
 require_once 'includes'.DIRECTORY_SEPARATOR.'header.php';
 if (isset($_SESSION['isLogged']) && $_SESSION['isLogged'] == true) {
-	header('Location: index.php');
+	header('Location: messages.php');
 	exit;
 }
 if ($_POST) {
