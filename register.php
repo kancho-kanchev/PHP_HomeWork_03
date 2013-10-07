@@ -99,9 +99,9 @@ if ($_POST) {
 	<form method="POST" action="register.php">
 		<div>Потребителско име:<input type="text" name="username" value="<?= (isset($username)) ? $username : '';?>"/></div>
 		<div>Парола:<input type="password" name="password" value="<?= (isset($password)) ? $password : '';?>"/></div>
-		<div>Прякор:<input type="nickname" name="nickname" value="<?= (isset($nickname)) ? $nickname : '';?>"/></div>
-		<div>Име:<input type="firstname" name="firstname" value="<?= (isset($firstname)) ? $firstname : '';?>"/></div>
-		<div>Фамилия:<input type="lastname" name="lastname" value="<?= (isset($lastname)) ? $lastname : '';?>"/></div>
+		<div>Прякор:<input type="text" name="nickname" value="<?= (isset($nickname)) ? $nickname : '';?>"/></div>
+		<div>Име:<input type="text" name="firstname" value="<?= (isset($firstname)) ? $firstname : '';?>"/></div>
+		<div>Фамилия:<input type="text" name="lastname" value="<?= (isset($lastname)) ? $lastname : '';?>"/></div>
 		<div>e-mail:<input type="email" name="email" value="<?= (isset($email)) ? $email : '';?>"/></div>
 		<div><input type="submit" name="submit" value="Регистрирай" /></div>
 	</form>
