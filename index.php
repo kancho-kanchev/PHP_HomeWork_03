@@ -7,30 +7,30 @@ if (isset($_SESSION['isLogged']) && $_SESSION['isLogged'] == true) {
 	exit;
 }
 else {
-	if ($_POST) {
-		$username = trim($_POST['username']);
-		$password = trim($_POST['password']);
-		if ($username == 'user' && $password == 'qwerty') {
-			$_SESSION['isLogged'] = true;
-			$_SESSION['username'] = $username;
-			header('Location: files.php');
-			exit;
-		}
-		elseif (file_exists('data.txt')) {
-			$result = file('data.txt');
-			foreach ($result as $value) {
-				$value = trim($value);
-				$columns = explode(';', $value);
-				if ($username == trim($columns[0]) && $password == $columns[1]) {
-					$_SESSION['isLogged'] = true;
-					$_SESSION['username'] = $username;
-					header('Location: files.php');
-					exit;
-				}
+	$connection = mysqli_connect('localhost', 'gatakka', 'qwerty', 'PHP_HomeWork_03');
+	if (!$connection) {
+		header('error.php?message=connectionerror');
+		exit;
+	}
+	else {
+		if ($_POST) {
+			$username = trim($_POST['username']);
+			$password = trim($_POST['password']);
+			$q = mysqli_query($connection, 'SELECT * FROM users');
+			if (!q) {
+				header('error.php?message=databaseerror');
+				echo mysqli_error($connection);
+				exit;
 			}
-		}
-		else {
-			$message = 'Невалидно потребителско име или парола.';
+			if ($username == trim($q) && $password == $q) {
+				$_SESSION['isLogged'] = true;
+				$_SESSION['username'] = $username;
+				header('Location: messages.php');
+				exit;
+			}
+			else {
+				$message = 'Невалидно потребителско име или парола.';
+			}
 		}
 	}
 ?>
