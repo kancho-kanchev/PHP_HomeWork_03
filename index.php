@@ -9,7 +9,7 @@ if (isset($_SESSION['isLogged']) && $_SESSION['isLogged'] == true) {
 else {
 	$connection = mysqli_connect('localhost', 'gatakka', 'qwerty', 'PHP_HomeWork_03');
 	if (!$connection) {
-		echo mysqli_error($connection);
+		//echo mysqli_error($connection);
 		header('error.php?message=connectionerror');
 		exit;
 	}
@@ -17,21 +17,27 @@ else {
 	if ($_POST) {
 		$username = trim($_POST['username']);
 		$password = trim($_POST['password']);
-		$q = mysqli_query($connection, 'SELECT username, password FROM users');
-		if (!$q) {
-			echo mysqli_error($connection);
+		
+		$stmt = mysqli_prepare($connection, 'SELECT username, password FROM users WHERE username=? AND password=?');
+		if (!$stmt) {
+			//echo mysqli_error($connection);
 			header('error.php?message=databaseerror');
-			echo mysqli_error($connection);
 			exit;
 		}
 		else {
-			while ($row = $q->fetch_assoc()) {
-				if ($username == $row['username'] && $password == $row['password']) {
-					$_SESSION['isLogged'] = true;
-					$_SESSION['username'] = $row['user_id'];
-					header('Location: messages.php');
-					exit;
-				}
+			mysqli_stmt_bind_param($stmt, 'ss', $username, $password);
+			mysqli_stmt_execute($stmt);
+			$rows = mysqli_stmt_result_metadata($stmt);
+			while ($field = mysqli_fetch_field($rows)) {
+				$fields[] = &$row[$field->name];
+			}
+			call_user_func_array(array($stmt, 'bind_result'), $fields);
+			while (mysqli_stmt_fetch($stmt)) {
+				//echo '<pre>'.print_r($row, true). '</pre>';
+				$_SESSION['isLogged'] = true;
+				$_SESSION['username'] = $row['user_id'];
+				header('Location: messages.php');
+				exit;
 			}
 			$message = 'Невалидно потребителско име или парола.';
 		}
