@@ -19,11 +19,11 @@ if ($_POST) {
 		}
 		$username = trim($_POST['username']);
 		if (mb_strlen($username, 'UTF-8') < 5 || mb_strlen($username, 'UTF-8') > 20) {
-			echo 'Името трябва да е между 5 и 20 символа</br>'."\n";
+			echo 'Потребителското име трябва да е между 5 и 20 символа</br>'."\n";
 			$error = true;
 		}
 		else if (!(!preg_match('/[^A-Za-z0-9]/', $username) && (ctype_alpha($username[0])))) {
-			echo 'Името трябва да започва с буква и може да съдържа букви и цифри</br>'."\n";
+			echo 'Потребителското име трябва да започва с буква и може да съдържа букви и цифри</br>'."\n";
 			$error = true;
 		}
 		$nickname = trim($_POST['nickname']);
@@ -35,11 +35,9 @@ if ($_POST) {
 			echo 'Прякора трябва да започва с буква и може да съсържа букви и цифри</br>'."\n";
 			$error = true;
 		}
-		
-		
 		$firstname = trim($_POST['firstname']);
-		if (mb_strlen($firstname, 'UTF-8') < 5 || mb_strlen($firstname, 'UTF-8') > 20) {
-			echo 'Името трябва да е между 5 и 20 символа</br>'."\n";
+		if (mb_strlen($firstname, 'UTF-8') > 20) {
+			echo 'Името трябва да е по-малко от 20 символа</br>'."\n";
 			$error = true;
 		}
 		else if (!(!preg_match('/[^A-Za-z]/', $firstname))) {
@@ -48,12 +46,12 @@ if ($_POST) {
 		}
 		
 		$lastname = trim($_POST['lastname']);
-		if (mb_strlen($lastname, 'UTF-8') < 5 || mb_strlen($lastname, 'UTF-8') > 20) {
-			echo 'Името трябва да е между 5 и 20 символа</br>'."\n";
+		if (mb_strlen($lastname, 'UTF-8') > 20) {
+			echo 'Фамилията трябва да е по-малко от 20 символа</br>'."\n";
 			$error = true;
 		}
 		else if (!(!preg_match('/[^A-Za-z]/', $lastname))) {
-			echo 'Името трябва да започва с буква и може да съсържа букви и цифри</br>'."\n";
+			echo 'Фамилията трябва да започва с буква и може да съсържа букви и цифри</br>'."\n";
 			$error = true;
 		}
 		
@@ -62,37 +60,81 @@ if ($_POST) {
 			echo 'Мейлът трябва да е между 5 и 50 символа</br>'."\n";
 			$error = true;
 		}
-		else if (!(!preg_match('/[^A-Za-z0-9]/', $email) && (ctype_alpha($email[0])))) {
+		else if (!(preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/', $email) && (ctype_alpha($email[0])))) {
 			echo 'Мейлът не е валиден</br>'."\n";
 			$error = true;
 		}
 	}
-	if (file_exists('data.txt')) {
-		$result = file('data.txt');
-		foreach ($result as $value) {
-			$value = trim($value);
-			$columns = explode(';', $value);
-			if ($username == trim($columns[0])) {
-				echo 'Този потребител вече съществува.';
+	else {
+		echo 'Потребителското име, паролата, прякора и мейла са задължителни<br>'."\n";
+	}
+	$connection = mysqli_connect('localhost', 'gatakka', 'qwerty', 'PHP_HomeWork_03');
+	if (!$connection) {
+		echo mysqli_error($connection);
+		header('error.php?message=connectionerror');
+		exit;
+	}
+	mysqli_set_charset($connection, 'UTF8');
+	if ($_POST) {
+		$stmt = mysqli_prepare($connection, 'SELECT username, nickname, email FROM users WHERE username=? OR nickname=? OR email=?');
+		if (!$stmt) {
+			//echo mysqli_error($connection);
+			header('error.php?message=databaseerror');
+			exit;
+		}
+		else {
+			mysqli_stmt_bind_param($stmt, 'sss', $username, $nickname, $email);
+			mysqli_stmt_execute($stmt);
+			$rows = mysqli_stmt_result_metadata($stmt);
+			while ($field = mysqli_fetch_field($rows)) {
+				$fields[] = &$row[$field->name];
+			}
+			call_user_func_array(array($stmt, 'bind_result'), $fields);
+			while (mysqli_stmt_fetch($stmt)) {
+				echo 'Потребителското име, прякорът и/или мейла са заети</br>'."\n";
 				$error = true;
 			}
+			$message = 'Невалидно потребителско име или парола.';
 		}
 	}
 	if (!$error) {
-		$result=$username.';'.$password."\n";
-		if (file_put_contents('data.txt', $result, FILE_APPEND)) {
-			echo 'Записа е успешен';
-			if (!file_exists($username)) {
-				mkdir($username);
-			}
-			$_SESSION['isLogged'] = true;
-			$_SESSION['username'] = $username;
-			header('Location: index.php');
+		$rigths = 1;
+		if (!($stmt = mysqli_prepare($connection, 'INSERT INTO users(username, password, nickname,firstname, lastname, email, rights) VALUES (?, ?, ?, ?, ?, ?, ?)'))) {
+			//echo mysqli_error($connection);
+			//echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
+			header('error.php?message=databaseerror');
 			exit;
 		}
+		elseif (!$stmt->bind_param("sssssi", $username, $password, $nickname, $firstname, $lastname, $email, $rigths)) {
+			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		}
+		if (!$stmt->execute()) {
+			echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		}
+		for ($id = 2; $id < 5; $id++) {
+			if (!$stmt->execute()) {
+				echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+			}
+		}
+
+		$rows = mysqli_stmt_result_metadata($stmt);
+		while ($field = mysqli_fetch_field($rows)) {
+			$fields[] = &$row[$field->name];
+			call_user_func_array(array($stmt, 'bind_result'), $fields);
+			while (mysqli_stmt_fetch($stmt)) {
+				echo 'Потребителското име или прякорът са заети</br>'."\n";
+				$error = true;
+			}
+			$message = 'Невалидно потребителско име или парола.';
+		}
+		echo 'Записа е успешен';
+		$_SESSION['isLogged'] = true;
+		$_SESSION['username'] = $username;
+		header('Location: index.php');
+		exit;
 	}
 	else {
-		echo "\n".'Неуспешен вход';
+		echo "\n".'Неуспешна регистрация';
 	}
 }
 ?>
@@ -102,7 +144,7 @@ if ($_POST) {
 		<div>Прякор:<input type="text" name="nickname" value="<?= (isset($nickname)) ? $nickname : '';?>"/></div>
 		<div>Име:<input type="text" name="firstname" value="<?= (isset($firstname)) ? $firstname : '';?>"/></div>
 		<div>Фамилия:<input type="text" name="lastname" value="<?= (isset($lastname)) ? $lastname : '';?>"/></div>
-		<div>e-mail:<input type="email" name="email" value="<?= (isset($email)) ? $email : '';?>"/></div>
+		<div>e-mail:<input type="text" name="email" value="<?= (isset($email)) ? $email : '';?>"/></div>
 		<div><input type="submit" name="submit" value="Регистрирай" /></div>
 	</form>
 	<form method="POST" action="destroy.php">

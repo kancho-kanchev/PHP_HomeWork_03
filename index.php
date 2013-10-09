@@ -37,18 +37,18 @@ else {
 				$_SESSION['isLogged'] = true;
 				$_SESSION['username'] = $row['user_id'];
 				header('Location: messages.php');
-				exit;
+				exit;  
 			}
 			$message = 'Невалидно потребителско име или парола.';
 		}
 	}
 ?>
-	<form method="POST">
+	<form method="POST" action="index.php">
 		<div>Потребител:<input type="text" name="username" /></div>
 		<div>Парола:<input type="password" name="password" /></div>
 		<div>
 			<a href="register.php">Регистрирай се</a>
-			<input type="submit" value="Влез" />
+			<input type="submit" name="submit" value="Влез" />
 		</div>
 	</form>
 <?php 
