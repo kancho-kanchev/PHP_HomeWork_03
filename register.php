@@ -68,13 +68,7 @@ if ($_POST) {
 	else {
 		echo 'Потребителското име, паролата, прякора и мейла са задължителни<br>'."\n";
 	}
-	$connection = mysqli_connect('localhost', 'gatakka', 'qwerty', 'PHP_HomeWork_03');
-	if (!$connection) {
-		//echo mysqli_error($connection);
-		header('error.php?message=connectionerror');
-		exit;
-	}
-	mysqli_set_charset($connection, 'UTF8');
+	require_once 'includes'.DIRECTORY_SEPARATOR.'conection.php';
 	if (!($stmt = mysqli_prepare($connection, 'SELECT username, nickname, email FROM users WHERE username=? OR nickname=? OR email=?'))) {
 		//echo mysqli_error($connection);
 		header('error.php?message=databaseerror');

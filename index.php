@@ -5,15 +5,12 @@ require_once 'includes'.DIRECTORY_SEPARATOR.'header.php';
 if (isset($_SESSION['isLogged']) && $_SESSION['isLogged'] == true) {
 	header('Location: messages.php');
 	exit;
+/*
+ * Съжалявам за неподреденото и недовършено домашно но не ми стигна времето :(
+ */
 }
 else {
-	$connection = mysqli_connect('localhost', 'gatakka', 'qwerty', 'PHP_HomeWork_03');
-	if (!$connection) {
-		//echo mysqli_error($connection);
-		header('error.php?message=connectionerror');
-		exit;
-	}
-	mysqli_set_charset($connection, 'UTF8');
+	require_once 'includes'.DIRECTORY_SEPARATOR.'conection.php';	
 	if ($_POST) {
 		$username = trim($_POST['username']);
 		$password = trim($_POST['password']);
@@ -35,7 +32,7 @@ else {
 			while (mysqli_stmt_fetch($stmt)) {
 				//echo '<pre>'.print_r($row, true). '</pre>';
 				$_SESSION['isLogged'] = true;
-				$_SESSION['username'] = $row['user_id'];
+				$_SESSION['username'] = $row['username'];
 				header('Location: messages.php');
 				exit;  
 			}
