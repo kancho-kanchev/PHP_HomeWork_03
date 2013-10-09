@@ -70,62 +70,43 @@ if ($_POST) {
 	}
 	$connection = mysqli_connect('localhost', 'gatakka', 'qwerty', 'PHP_HomeWork_03');
 	if (!$connection) {
-		echo mysqli_error($connection);
+		//echo mysqli_error($connection);
 		header('error.php?message=connectionerror');
 		exit;
 	}
 	mysqli_set_charset($connection, 'UTF8');
-	if ($_POST) {
-		$stmt = mysqli_prepare($connection, 'SELECT username, nickname, email FROM users WHERE username=? OR nickname=? OR email=?');
-		if (!$stmt) {
-			//echo mysqli_error($connection);
-			header('error.php?message=databaseerror');
-			exit;
+	if (!($stmt = mysqli_prepare($connection, 'SELECT username, nickname, email FROM users WHERE username=? OR nickname=? OR email=?'))) {
+		//echo mysqli_error($connection);
+		header('error.php?message=databaseerror');
+		exit;
+	}
+	else {
+		mysqli_stmt_bind_param($stmt, 'sss', $username, $nickname, $email);
+		mysqli_stmt_execute($stmt);
+		$rows = mysqli_stmt_result_metadata($stmt);
+		while ($field = mysqli_fetch_field($rows)) {
+			$fields[] = &$row[$field->name];
 		}
-		else {
-			mysqli_stmt_bind_param($stmt, 'sss', $username, $nickname, $email);
-			mysqli_stmt_execute($stmt);
-			$rows = mysqli_stmt_result_metadata($stmt);
-			while ($field = mysqli_fetch_field($rows)) {
-				$fields[] = &$row[$field->name];
-			}
-			call_user_func_array(array($stmt, 'bind_result'), $fields);
-			while (mysqli_stmt_fetch($stmt)) {
-				echo 'Потребителското име, прякорът и/или мейла са заети</br>'."\n";
-				$error = true;
-			}
-			$message = 'Невалидно потребителско име или парола.';
+		call_user_func_array(array($stmt, 'bind_result'), $fields);
+		while (mysqli_stmt_fetch($stmt)) {
+			echo 'Потребителското име, прякорът и/или мейла са заети</br>'."\n";
+			$error = true;
 		}
+		$message = 'Невалидно потребителско име или парола.';
 	}
 	if (!$error) {
 		$rigths = 1;
-		if (!($stmt = mysqli_prepare($connection, 'INSERT INTO users(username, password, nickname,firstname, lastname, email, rights) VALUES (?, ?, ?, ?, ?, ?, ?)'))) {
+		if (!($stmt = mysqli_prepare($connection, 'INSERT INTO users(username, password, nickname, firstname, lastname, email, rights) VALUES (?, ?, ?, ?, ?, ?, ?)'))) {
 			//echo mysqli_error($connection);
 			//echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
 			header('error.php?message=databaseerror');
 			exit;
 		}
-		elseif (!$stmt->bind_param("sssssi", $username, $password, $nickname, $firstname, $lastname, $email, $rigths)) {
+		if (!$stmt->bind_param("ssssssi", $username, $password, $nickname, $firstname, $lastname, $email, $rigths)) {
 			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
 		}
 		if (!$stmt->execute()) {
 			echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-		}
-		for ($id = 2; $id < 5; $id++) {
-			if (!$stmt->execute()) {
-				echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-			}
-		}
-
-		$rows = mysqli_stmt_result_metadata($stmt);
-		while ($field = mysqli_fetch_field($rows)) {
-			$fields[] = &$row[$field->name];
-			call_user_func_array(array($stmt, 'bind_result'), $fields);
-			while (mysqli_stmt_fetch($stmt)) {
-				echo 'Потребителското име или прякорът са заети</br>'."\n";
-				$error = true;
-			}
-			$message = 'Невалидно потребителско име или парола.';
 		}
 		echo 'Записа е успешен';
 		$_SESSION['isLogged'] = true;

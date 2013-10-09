@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Web server';
+$pageTitle = 'Messages';
 $message = '';
 $messageForDel = '';
 require_once 'includes'.DIRECTORY_SEPARATOR.'header.php';
