@@ -14,6 +14,7 @@ if (isset($_SESSION['isLogged']) && $_SESSION['isLogged'] == true) {
 		<a href="new_message.php">Ново съобщение</a>
 	</div>
 <?php
+
 }
 else {
 	header('Location: index.php');
